@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NexusEnroll System</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 10px; }
+        .column { width: 33%; display: flex; flex-direction: column; }
+        form, .action-box { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        input, select, button { display: block; width: 95%; margin-bottom: 10px; padding: 8px; }
+        button { cursor: pointer; background-color: #007bff; color: white; border: none; }
+        #dropForm button { background-color: #dc3545; } /* Red button for drop/unenroll */
+        button:hover { opacity: 0.8; }
+        h2 { border-bottom: 2px solid steelblue; padding-bottom: 5px; margin-top: 0; }
+        pre { background-color: #eee; padding: 10px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; flex-grow: 1; font-size: 12px; }
+        #data-view { background-color: #e6f7ff; }
+    </style>
+</head>
+<body>
+    <!-- Actions Column -->
+    <div class="column">
+        <h2>Actions</h2>
+        
+        <div class="action-box">
+            <h3>View System State</h3>
+            <button id="refreshBtn">View/Refresh System Data</button>
+        </div>
+
+        <form id="addUserForm">
+            <h3>Add User</h3>
+            <input type="text" id="userId" placeholder="User ID (e.g., S001)" required>
+            <input type="text" id="userName" placeholder="User Name" required>
+            <select id="userType" required>
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="administrator">Administrator</option>
+            </select>
+            <button type="submit">Add User</button>
+        </form>
+
+        <form id="addCourseForm">
+            <h3>Add Course</h3>
+            <input type="text" id="courseId" placeholder="Course ID (e.g., CS101)" required>
+            <input type="text" id="courseName" placeholder="Course Name" required>
+            <input type="number" id="courseCapacity" placeholder="Capacity" required>
+            <button type="submit">Add Course</button>
+        </form>
+
+        <form id="enrollForm">
+            <h3>Enroll Student</h3>
+            <input type="text" id="enrollStudentId" placeholder="Student ID" required>
+            <input type="text" id="enrollCourseId" placeholder="Course ID" required>
+            <button type="submit">Enroll</button>
+        </form>
+
+        <!-- === TEXT UPDATED IN THIS SECTION FOR CLARITY === -->
+        <form id="dropForm">
+            <h3>Unenroll Student from Course</h3>
+            <input type="text" id="dropStudentId" placeholder="Student ID" required>
+            <input type="text" id="dropCourseId" placeholder="Course ID" required>
+            <button type="submit">Unenroll Student</button>
+        </form>
+    </div>
+
+    <!-- System Data Column -->
+    <div class="column">
+        <h2>Current System Data</h2>
+        <pre id="data-view">Click the 'View/Refresh' button to see data...</pre>
+    </div>
+
+    <!-- Log Column -->
+    <div class="column">
+        <h2>Service Response Log</h2>
+        <pre id="log">Responses from actions will appear here...</pre>
+    </div>
+
+    <script>
+        // --- JAVASCRIPT IS UNCHANGED ---
+        const log = document.getElementById('log');
+        const dataView = document.getElementById('data-view');
+
+        async function apiCall(url, method, body, displayTarget) {
+            displayTarget.textContent = 'Loading...';
+            try {
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                };
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+                const response = await fetch(url, options);
+                const data = await response.json();
+                displayTarget.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                displayTarget.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            apiCall('http://127.0.0.1:5004/system_data', 'GET', null, dataView);
+        });
+
+        document.getElementById('addUserForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const body = {
+                user_id: document.getElementById('userId').value,
+                name: document.getElementById('userName').value,
+                type: document.getElementById('userType').value
+            };
+            apiCall('http://127.0.0.1:5001/users', 'POST', body, log);
+        });
+
+        document.getElementById('addCourseForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const body = {
+                course_id: document.getElementById('courseId').value,
+                name: document.getElementById('courseName').value,
+                capacity: document.getElementById('courseCapacity').value
+            };
+            apiCall('http://127.0.0.1:5002/courses', 'POST', body, log);
+        });
+
+        document.getElementById('enrollForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const body = {
+                student_id: document.getElementById('enrollStudentId').value,
+                course_id: document.getElementById('enrollCourseId').value
+            };
+            apiCall('http://127.0.0.1:5004/enroll', 'POST', body, log);
+        });
+
+        document.getElementById('dropForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const body = {
+                student_id: document.getElementById('dropStudentId').value,
+                course_id: document.getElementById('dropCourseId').value
+            };
+            apiCall('http://127.0.0.1:5004/drop', 'POST', body, log);
+        });
+    </script>
+</body>
+</html>
