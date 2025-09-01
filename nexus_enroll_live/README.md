@@ -66,6 +66,12 @@ It is a best practice to create a virtual environment to isolate project depende
     ```cmd
     venv\Scripts\activate
     ```
+    ###### OR
+
+    ```cmd
+    venv\bin\activate
+    ```
+
     You will know it's active because your command prompt will now be prefixed with `(venv)`.
 
 ### Step 3: Install Dependencies
